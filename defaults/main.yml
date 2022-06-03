@@ -6,6 +6,7 @@ vaultwarden_build_backend: "{{ 'sqlite,mysql,postgresql' if vaultwarden_version 
 vaultwarden_force_recompile: false
 vaultwarden_config:
   DOMAIN: https://{{ ansible_fqdn }}/"
+  ROCKET_ADDRESS: "{{ vaultwarden_listen_address }}"
 vaultwarden_datadir: "{{ vaultwarden_directory }}/data"
 vaultwarden_encryption_key: ""
 vaultwarden_force_encryption_key: false
