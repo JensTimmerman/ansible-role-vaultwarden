@@ -13,13 +13,17 @@
 
 - name: Include the vaultwarden install playbook
   ansible.builtin.include_tasks: install.yml
-  become: true
+  args:
+    apply:
+      become: true
   tags:
     - vaultwarden_install
 
 - name: Include the vaultwarden configure playbook
   ansible.builtin.include_tasks: configure.yml
-  become: true
+  args:
+    apply:
+      become: true
   tags:
     - vaultwarden_configure
 
