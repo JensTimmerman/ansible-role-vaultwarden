@@ -1,3 +1,5 @@
+![GPL licensed](https://img.shields.io/github/license/JensTimmerman/ansible-role-vaultwarden)
+
 # Vaultwarden
 
 ####  This role was previously known as `dmaes.bitwardenrs` and `dmaes.vaultwarden`
@@ -74,5 +76,3 @@ Builds, installs and configures [Vaultwarden](https://github.com/dani-garcia/vau
     - jenstimmerman.vaultwarden
 ```
 
-## License
-MIT
