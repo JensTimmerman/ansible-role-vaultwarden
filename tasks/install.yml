@@ -85,4 +85,4 @@
     state: directory
     owner: vaultwarden
     group: vaultwarden
-    mode: u=rw,go=
+    mode: u=rw,g=r,o=
