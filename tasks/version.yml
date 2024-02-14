@@ -1,3 +1,4 @@
+---
 - name: "Determine 'latest' version release"
   when: vaultwarden_version == "latest"
   block:
@@ -27,7 +28,6 @@
         return_content: true
       register: vaultwarden_webvault_remote_metadata
       when: not ansible_check_mode
-
 
     - name: "Set fact latest vaultwarden webvault release"
       ansible.builtin.set_fact:

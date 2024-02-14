@@ -1,3 +1,4 @@
+---
 - name: Ensure vaultwarden system group
   ansible.builtin.group:
     name: vaultwarden
@@ -11,7 +12,7 @@
     home: "{{ vaultwarden_directory }}"
     create_home: true
     move_home: true
-    password: '!'
+    password: "!"
     system: true
     shell: /bin/sh
     comment: Vaultwarden server,,,
@@ -29,8 +30,7 @@
   ansible.builtin.package:
     name: "{{ __vaultwarden_backend_build_packages[item] }}"
     state: present
-  loop:
-    "{{ vaultwarden_build_backend | split(',') }}"
+  loop: "{{ vaultwarden_build_backend | split(',') }}"
 
 - name: Install required build-packages
   ansible.builtin.package:

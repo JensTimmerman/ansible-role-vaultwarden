@@ -1,6 +1,6 @@
 ---
 - hosts: localhost
-  name: 'Test'
+  name: "Test"
   remote_user: root
   vars:
     vaultwarden_configure: false

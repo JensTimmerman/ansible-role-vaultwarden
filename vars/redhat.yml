@@ -7,14 +7,7 @@ __vaultwarden_build_packages:
 
 __vaultwarden_backend_build_packages:
   {
-    sqlite: [
-      sqlite-devel
-    ],
-    postgresql: [
-      libpq-devel
-    ],
-    mysql: [
-      mariadb-devel,
-      mysql-libs
-    ]
+    sqlite: [sqlite-devel],
+    postgresql: [libpq-devel],
+    mysql: [mariadb-devel, mysql-libs],
   }

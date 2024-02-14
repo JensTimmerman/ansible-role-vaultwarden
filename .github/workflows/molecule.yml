@@ -1,6 +1,5 @@
-name: Ansible Molecule  
+name: Ansible Molecule
 on: [push, pull_request]
-
 
 jobs:
   molecule:

@@ -1,3 +1,4 @@
+---
 - name: Gather OS-specific variables
   ansible.builtin.include_vars: "{{ item }}"
   with_first_found:
@@ -15,7 +16,6 @@
   ansible.builtin.include_tasks: version.yml
   tags:
     - vaultwarden_install
-
 
 - name: Include the vaultwarden install playbook
   ansible.builtin.include_tasks: install.yml

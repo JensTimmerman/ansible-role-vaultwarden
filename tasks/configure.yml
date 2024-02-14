@@ -1,3 +1,4 @@
+---
 - name: Ensure configuration
   ansible.builtin.template:
     src: env.j2
@@ -17,7 +18,6 @@
     force: "{{ vaultwarden_force_encryption_key }}"
   register: __vaultwarden_copy_encryption_rsa_key
   when: vaultwarden_encryption_key|length > 0
-
 
 - name: Setup systemd service
   ansible.builtin.template:
