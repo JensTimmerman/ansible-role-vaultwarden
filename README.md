@@ -22,7 +22,7 @@ When making the switch:
 
 Builds, installs and configures [Vaultwarden](https://github.com/dani-garcia/vaultwarden) (without Docker).
 
-*Only tested on Debian 10 and CentOS 8*
+*Only tested on Rocky linux 9*
 
 ## Requirements
 * Requirements for the [unarchive](https://docs.ansible.com/ansible/latest/modules/unarchive_module.html)-module
