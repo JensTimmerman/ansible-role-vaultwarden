@@ -11,3 +11,5 @@ vaultwarden_encryption_key: ""
 vaultwarden_force_encryption_key: false
 vaultwarden_systemd: "{{ ansible_service_mgr == 'systemd' }}"
 vaultwarden_proc_limit: "128"
+vaultwarden_install_type: "source"
+vaultwarden_apt_gpg_fingerprint: "B72D36A06EA9FCFDC4C77E32BB8E9EBBC0D5117D"

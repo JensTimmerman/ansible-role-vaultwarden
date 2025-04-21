@@ -15,17 +15,23 @@
   ansible.builtin.include_tasks: version.yml
   tags:
     - vaultwarden_install
-
+  when: vaultwarden_install_type == "source"
 
 - name: Include the vaultwarden install playbook
   ansible.builtin.include_tasks: install.yml
   tags:
     - vaultwarden_install
+  when: vaultwarden_install_type == "source"
 
 - name: Include the vaultwarden configure playbook
   ansible.builtin.include_tasks: configure.yml
   tags:
     - vaultwarden_configure
+  when: vaultwarden_install_type == "source"
+
+- name: Include apt_install.yml
+  ansible.builtin.include_tasks: apt_install.yml
+  when: vaultwarden_install_type == "apt"
 
 - name: Ensure vaultwarden started and enabled
   become: true

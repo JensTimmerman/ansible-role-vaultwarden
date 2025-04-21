@@ -1,0 +1,59 @@
+---
+- name: Vaultwarden | Ensure apt-transport-https is installed
+  ansible.builtin.apt:
+    pkg:
+      - apt-transport-https
+      - gpg
+    state: present
+
+- name: Vaultwarden | Get apt key
+  ansible.builtin.get_url:
+    url: https://packagecloud.io/dionysius/vaultwarden/gpgkey
+    dest: /usr/share/keyrings/vaultwarden-archive-keyring.asc
+    mode: '0644'
+    force: true
+
+- name: Vaultwarden | Verify GPG key fingerprint
+  ansible.builtin.shell:
+    cmd: |
+      set -o pipefail
+      gpg --show-keys --with-fingerprint --with-colons /usr/share/keyrings/vaultwarden-archive-keyring.asc 2>/dev/null | grep -m 1 fpr | awk -F: '{print $10}'
+  args:
+    executable: /bin/bash
+  register: gpg_fingerprint
+  changed_when: gpg_fingerprint.rc != 0
+
+- name: Vaultwarden | Check if GPG fingerprint matches the expected value
+  ansible.builtin.assert:
+    that:
+      - gpg_fingerprint.stdout.strip() == "{{ vaultwarden_apt_gpg_fingerprint }}"
+    fail_msg: "GPG fingerprint does not match the expected value."
+    success_msg: "GPG fingerprint matches the expected value."
+
+- name: Vaultwarden | Ensure grafana apt repository is present
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by=/usr/share/keyrings/vaultwarden-archive-keyring.asc] https://packagecloud.io/dionysius/vaultwarden/{{ ansible_distribution | lower }} {{ ansible_distribution_release }} main"
+    update_cache: true
+    state: present
+
+- name: Vaultwarden | Lower Priority from grafana repo (do not trust that repo for anything different)
+  ansible.builtin.template:
+    src: ./templates/vaultwarden_policy_100
+    dest: /etc/apt/preferences.d/vaultwarden_policy_100
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Vaultwarden | Ensure Vaultwarden is installed
+  ansible.builtin.apt:
+    name: vaultwarden
+    state: present
+
+- name: Ensure configuration
+  ansible.builtin.template:
+    src: env.j2
+    dest: "/etc/default/vaultwarden"
+    owner: vaultwarden
+    group: vaultwarden
+    mode: u=rw,go=
+  notify: Restart vaultwarden
