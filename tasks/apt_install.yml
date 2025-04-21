@@ -32,7 +32,9 @@
 
 - name: Vaultwarden | Ensure grafana apt repository is present
   ansible.builtin.apt_repository:
-    repo: "deb [signed-by=/usr/share/keyrings/vaultwarden-archive-keyring.asc] https://packagecloud.io/dionysius/vaultwarden/{{ ansible_distribution | lower }} {{ ansible_distribution_release }} main"
+    repo: >
+      deb [signed-by=/usr/share/keyrings/vaultwarden-archive-keyring.asc]
+      https://packagecloud.io/dionysius/vaultwarden/{{ ansible_distribution | lower }} {{ ansible_distribution_release }} main
     update_cache: true
     state: present
 
