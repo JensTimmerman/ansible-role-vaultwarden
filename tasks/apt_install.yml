@@ -30,7 +30,7 @@
     fail_msg: "GPG fingerprint does not match the expected value."
     success_msg: "GPG fingerprint matches the expected value."
 
-- name: Vaultwarden | Ensure grafana apt repository is present
+- name: Vaultwarden | Ensure vaultwarden apt repository is present
   ansible.builtin.apt_repository:
     repo: >
       deb [signed-by=/usr/share/keyrings/vaultwarden-archive-keyring.asc]
@@ -38,7 +38,7 @@
     update_cache: true
     state: present
 
-- name: Vaultwarden | Lower Priority from grafana repo (do not trust that repo for anything different)
+- name: Vaultwarden | Lower Priority from vaultwarden repo (do not trust that repo for anything different)
   ansible.builtin.template:
     src: ./templates/vaultwarden_policy_100
     dest: /etc/apt/preferences.d/vaultwarden_policy_100
@@ -51,7 +51,18 @@
     name: vaultwarden
     state: present
 
-- name: Ensure configuration
+- name: Vaultwarden | Copy encryption rsa key
+  ansible.builtin.copy:
+    content: "{{ vaultwarden_encryption_key }}"
+    dest: "{{ vaultwarden_datadir }}/rsa_key.pem"
+    owner: vaultwarden
+    group: vaultwarden
+    mode: u=rw,go=
+    force: "{{ vaultwarden_force_encryption_key }}"
+  register: __vaultwarden_copy_encryption_rsa_key
+  when: vaultwarden_encryption_key|length > 0
+
+- name: Vaultwarden | Ensure configuration
   ansible.builtin.template:
     src: env.j2
     dest: "/etc/default/vaultwarden"
