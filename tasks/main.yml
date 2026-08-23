@@ -33,7 +33,6 @@
     name: vaultwarden
     state: started
     enabled: true
-    daemon_reload: true
   when: vaultwarden_systemd
   tags:
     - vaultwarden_run
