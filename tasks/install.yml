@@ -37,6 +37,20 @@
     name: "{{ __vaultwarden_build_packages }}"
     state: present
 
+- name: Find previous vaultwarden builds
+  ansible.builtin.find:
+    paths: "{{ vaultwarden_directory }}"
+    patterns: "vaultwarden-*"
+    file_type: directory
+  register: _vaultwarden_previous_builds
+
+- name: Remove previous vaultwarden builds
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ _vaultwarden_previous_builds.files }}"
+  when: item.path != (vaultwarden_directory ~ '/vaultwarden-' ~ vaultwarden_target_version)
+
 - name: Get rustup installer
   ansible.builtin.get_url:
     url: https://sh.rustup.rs
