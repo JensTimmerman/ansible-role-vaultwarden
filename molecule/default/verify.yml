@@ -29,13 +29,13 @@
             '/opt/vaultwarden/vaultwarden-' ~ vaultwarden_target_version
 
     - name: Check vaultwarden service is active
-      ansible.builtin.command: systemctl is-active vaultwarden
-      changed_when: false
-      register: _vaultwarden_service_state
+      ansible.builtin.systemd:
+        name: vaultwarden
+      register: _vaultwarden_service
 
     - name: Assert vaultwarden service is active
       ansible.builtin.assert:
-        that: _vaultwarden_service_state.stdout == 'active'
+        that: _vaultwarden_service.status.ActiveState == 'active'
 
     - name: Check vaultwarden responds
       ansible.builtin.uri:
