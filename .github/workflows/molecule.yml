@@ -5,6 +5,8 @@ on: [push, pull_request]
 jobs:
   molecule:
     runs-on: ubuntu-latest
+    env:
+      ANSIBLE_VERBOSITY: 3
     steps:
       - uses: actions/checkout@v7
         with:
