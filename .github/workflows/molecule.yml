@@ -12,4 +12,4 @@ jobs:
       - name: molecule
         uses: robertdebock/molecule-action@5.0.2
         with:
-          command: lint
+          command: test
