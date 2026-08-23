@@ -5,6 +5,25 @@
   hosts: all
   gather_facts: false
   tasks:
-    - name: Example assertion
+    - name: Check fake previous build directory is removed
+      ansible.builtin.stat:
+        path: /opt/vaultwarden/vaultwarden-0.0.0-test
+      register: _vaultwarden_old_build
+
+    - name: Assert previous build directory was removed
       ansible.builtin.assert:
-        that: true
+        that: not _vaultwarden_old_build.stat.exists
+
+    - name: List remaining vaultwarden build directories
+      ansible.builtin.find:
+        paths: /opt/vaultwarden
+        patterns: "vaultwarden-*"
+        file_type: directory
+      register: _vaultwarden_build_dirs
+
+    - name: Assert only the current build directory remains
+      ansible.builtin.assert:
+        that:
+          - _vaultwarden_build_dirs.files | length == 1
+          - _vaultwarden_build_dirs.files[0].path ==
+            '/opt/vaultwarden/vaultwarden-' ~ vaultwarden_target_version
