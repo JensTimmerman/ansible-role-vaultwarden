@@ -27,3 +27,21 @@
           - _vaultwarden_build_dirs.files | length == 1
           - _vaultwarden_build_dirs.files[0].path ==
             '/opt/vaultwarden/vaultwarden-' ~ vaultwarden_target_version
+
+    - name: Check vaultwarden service is active
+      ansible.builtin.command: systemctl is-active vaultwarden
+      changed_when: false
+      register: _vaultwarden_service_state
+
+    - name: Assert vaultwarden service is active
+      ansible.builtin.assert:
+        that: _vaultwarden_service_state.stdout == 'active'
+
+    - name: Check vaultwarden responds
+      ansible.builtin.uri:
+        url: http://localhost:8000/alive
+        status_code: 200
+      register: _vaultwarden_alive
+      retries: 6
+      delay: 10
+      until: _vaultwarden_alive.status == 200
