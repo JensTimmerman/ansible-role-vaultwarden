@@ -25,8 +25,8 @@
       ansible.builtin.assert:
         that:
           - _vaultwarden_build_dirs.files | length == 1
-          - _vaultwarden_build_dirs.files[0].path ==
-            '/opt/vaultwarden/vaultwarden-' ~ vaultwarden_target_version
+          - not (_vaultwarden_build_dirs.files[0].path is match('.*/vaultwarden-[0-9.]+-test$'))
+          - _vaultwarden_build_dirs.files[0].path is match('/opt/vaultwarden/vaultwarden-\d+\.\d+\.\d+$')
 
     - name: Check vaultwarden service is active
       ansible.builtin.systemd:
