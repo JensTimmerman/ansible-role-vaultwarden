@@ -11,12 +11,6 @@
       when: ansible_os_family == 'Debian'
       changed_when: false
 
-    - name: Create fake previous build directory
-      ansible.builtin.file:
-        path: /opt/vaultwarden/vaultwarden-0.0.0-test/target/release
-        state: directory
-        mode: u=rwx,go=rx
-
   tasks:
     - name: "Include vaultwarden"
       ansible.builtin.include_role:
