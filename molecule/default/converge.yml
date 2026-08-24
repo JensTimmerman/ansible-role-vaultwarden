@@ -15,3 +15,13 @@
     - name: "Include vaultwarden"
       ansible.builtin.include_role:
         name: "ansible-role-vaultwarden"
+
+  post_tasks:
+    - name: DEBUG dump vaultwarden journal
+      ansible.builtin.command: journalctl -u vaultwarden --no-pager -n 100
+      changed_when: false
+      register: _debug_journal
+
+    - name: DEBUG show journal
+      ansible.builtin.debug:
+        var: _debug_journal.stdout_lines
