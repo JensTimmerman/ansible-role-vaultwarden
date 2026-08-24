@@ -12,15 +12,42 @@ ExecStart = {{ vaultwarden_directory }}/vaultwarden
 # Set reasonable connection and process limits
 LimitNOFILE=1048576
 LimitNPROC={{ vaultwarden_proc_limit }}
-# Isolate vaultwarden from the rest of the system
-PrivateTmp=true
-PrivateDevices=true
-ProtectHome=true
-ProtectSystem=strict
 WorkingDirectory = {{ vaultwarden_directory }}
 EnvironmentFile={{ vaultwarden_directory }}/.env
-ReadWriteDirectories={{ vaultwarden_directory }}
-MemoryDenyWriteExecute=true
+ReadWritePaths={{ vaultwarden_directory }} {{ vaultwarden_datadir }}
+
+# Privilege and capability restrictions
+NoNewPrivileges=yes
+CapabilityBoundingSet=
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+PrivateTmp=yes
+PrivateDevices=yes
+DevicePolicy=closed
+KeyringMode=private
+RemoveIPC=yes
+
+# Filesystem isolation
+ProtectSystem=strict
+ProtectHome=yes
+
+# Kernel interface restrictions
+ProtectClock=yes
+ProtectControlGroups=yes
+ProtectHostname=yes
+ProtectKernelLogs=yes
+ProtectKernelModules=yes
+ProtectKernelTunables=yes
+ProtectProc=invisible
+RestrictNamespaces=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+
+# Syscall filtering
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6 AF_NETLINK
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+SystemCallErrorNumber=EPERM
 
 [Install]
 WantedBy = multi-user.target
