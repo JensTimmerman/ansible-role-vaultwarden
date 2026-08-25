@@ -31,7 +31,7 @@ Builds, installs and configures [Vaultwarden](https://github.com/dani-garcia/vau
 * jinja => v2.11
 * Systemd (optional)
 
-At least 1 GB of RAM (2GB recommended), the rustc compiler will compile bitwarden on your host which takes a lot of ram. Possible symptoms of not enought RAM are:
+At least 4 GB of RAM is recommended, the rustc compiler will compile vaultwarden on your host which takes a lot of ram. Possible symptoms of not enough RAM are:
 `Memory cgroup out of memory: Killed process 709453 (rustc) total-vm:2668356kB, anon-rss:955680kB, file-rss:0kB, shmem-rss:0kB, UID:996 pgtables:4516kB oom_score_adj:0`
 
 ## Role Variables
@@ -79,6 +79,23 @@ At least 1 GB of RAM (2GB recommended), the rustc compiler will compile bitwarde
   roles:
     - jenstimmerman.vaultwarden
 ```
+
+## Changelog
+
+### v1.5.0
+* **Set `VW_VERSION` during build** ([#40](https://github.com/JensTimmerman/ansible-role-vaultwarden/issues/40)): recent Bitwarden clients require a version string baked into the binary. The `VW_VERSION` environment variable is now passed to cargo during compilation, using the resolved target version.
+* **Systemd service hardening** ([#27](https://github.com/JensTimmerman/ansible-role-vaultwarden/issues/27)): the generated systemd unit now includes additional restrictions: `NoNewPrivileges`, `CapabilityBoundingSet=`, `LockPersonality`, `KeyringMode=private`, `RemoveIPC`, `DevicePolicy=closed`, `ProtectClock`, `ProtectControlGroups`, `ProtectHostname`, `ProtectKernelLogs`, `ProtectKernelModules`, `ProtectKernelTunables`, `ProtectProc=invisible`, `RestrictNamespaces`, `RestrictRealtime`, `RestrictSUIDSGID`, `RestrictAddressFamilies`, `SystemCallArchitectures=native`, and `SystemCallFilter=@system-service`.
+* **`ReadWriteDirectories` replaced by `ReadWritePaths`**: the deprecated directive is now replaced with `ReadWritePaths`, which also covers `vaultwarden_datadir`. If you set a custom `vaultwarden_datadir` outside `vaultwarden_directory`, verify that vaultwarden can still write to it after upgrading.
+
+### v1.4.1
+* **Bugfix: vaultwarden fails to start**: the default `DOMAIN` config value contained a stray trailing quote, producing an invalid `.env`. Vaultwarden would exit immediately with `Failed parsing environment file: .env` and crash-loop under systemd.
+* **Fix builds on OpenSSL < 3**: newer vaultwarden dependencies (webauthn-rs) require OpenSSL >= 3; molecule tests now run on Debian 12 instead of Debian 11.
+* Molecule test hardening: fake previous-build fixture moved to prepare, removed always-changed `daemon_reload` from the start task, and verification now asserts the service is active and answering on `:8000/alive`.
+
+### v1.4.0
+* **Clean up previous build directories**: before installing rust and compiling, all previous `vaultwarden-*` build trees under `vaultwarden_directory` are removed (each keeps a multi-GB `target/` dir). This prevents updates from failing with `No space left on device` on smaller disks.
+* Molecule test coverage for the cleanup.
+* ansible-lint: exclude the test playbook; move Dependabot config to `.github/dependabot.yml`.
 
 ## License
 MIT
