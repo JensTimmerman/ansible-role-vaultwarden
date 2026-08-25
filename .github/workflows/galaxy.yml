@@ -1,0 +1,21 @@
+# Imports the role to Ansible Galaxy when a tag is pushed.
+# Requires the GALAXY_API_KEY secret to be configured in the repo settings
+# (Settings > Secrets and variables > Actions).
+name: Import to Ansible Galaxy
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  galaxy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Install ansible-core
+        run: python3 -m pip install --user ansible-core
+      - name: Import role
+        run: ansible-galaxy role import JensTimmerman ansible-role-vaultwarden --token "$GALAXY_API_KEY"
+        env:
+          GALAXY_API_KEY: "${{ secrets.GALAXY_API_KEY }}"
