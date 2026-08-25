@@ -74,8 +74,8 @@
     group: vaultwarden
 
 - name: Compile vaultwarden
-  ansible.builtin.command:
-    cmd: su vaultwarden -c '~vaultwarden/.cargo/bin/cargo build --features {{ vaultwarden_build_backend }} --release'
+  ansible.builtin.shell:
+    cmd: su vaultwarden -c 'VW_VERSION={{ vaultwarden_target_version }} ~/.cargo/bin/cargo build --features {{ vaultwarden_build_backend }} --release'
     chdir: "{{ vaultwarden_directory }}/vaultwarden-{{ vaultwarden_target_version }}"
     creates: "{{ omit if vaultwarden_force_recompile else creates }}"
   vars:
