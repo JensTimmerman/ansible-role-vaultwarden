@@ -1,6 +1,8 @@
 ---
 dependency:
   name: galaxy
+  options:
+    timeout: 60
 driver:
   name: docker
 platforms:

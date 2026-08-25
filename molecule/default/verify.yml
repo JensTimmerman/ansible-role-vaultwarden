@@ -45,3 +45,20 @@
       retries: 6
       delay: 10
       until: _vaultwarden_alive.status == 200
+
+    - name: Fetch vaultwarden version
+      ansible.builtin.uri:
+        url: http://localhost:8000/api/version
+        return_content: true
+      register: _vaultwarden_version
+
+    - name: Parse vaultwarden version
+      ansible.builtin.set_fact:
+        _vw_version: "{{ _vaultwarden_version.content | regex_replace('^\"|\"$', '') }}"
+
+    - name: Assert vaultwarden reports a version
+      ansible.builtin.assert:
+        that:
+          - _vw_version | length > 0
+          - _vw_version is match('\d+\.\d+\.\d+')
+        fail_msg: "VW_VERSION not baked into binary — /api/version returned '{{ _vw_version }}'"
