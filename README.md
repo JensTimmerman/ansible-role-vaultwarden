@@ -82,7 +82,7 @@ At least 1 GB of RAM (2GB recommended), the rustc compiler will compile bitwarde
 
 ## Changelog
 
-### v1.5.0 (unreleased)
+### v1.5.0
 * **Set `VW_VERSION` during build** ([#40](https://github.com/JensTimmerman/ansible-role-vaultwarden/issues/40)): recent Bitwarden clients require a version string baked into the binary. The `VW_VERSION` environment variable is now passed to cargo during compilation, using the resolved target version.
 * **Systemd service hardening** ([#27](https://github.com/JensTimmerman/ansible-role-vaultwarden/issues/27)): the generated systemd unit now includes additional restrictions: `NoNewPrivileges`, `CapabilityBoundingSet=`, `LockPersonality`, `KeyringMode=private`, `RemoveIPC`, `DevicePolicy=closed`, `ProtectClock`, `ProtectControlGroups`, `ProtectHostname`, `ProtectKernelLogs`, `ProtectKernelModules`, `ProtectKernelTunables`, `ProtectProc=invisible`, `RestrictNamespaces`, `RestrictRealtime`, `RestrictSUIDSGID`, `RestrictAddressFamilies`, `SystemCallArchitectures=native`, and `SystemCallFilter=@system-service`.
 * **`ReadWriteDirectories` replaced by `ReadWritePaths`**: the deprecated directive is now replaced with `ReadWritePaths`, which also covers `vaultwarden_datadir`. If you set a custom `vaultwarden_datadir` outside `vaultwarden_directory`, verify that vaultwarden can still write to it after upgrading.
