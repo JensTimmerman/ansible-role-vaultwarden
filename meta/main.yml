@@ -1,5 +1,6 @@
 galaxy_info:
   author: jenstimmerman
+  namespace: jenstimmerman
   role_name: vaultwarden
   description: Builds, installs and configures Vaultwarden (https://github.com/dani-garcia/vaultwarden) (without Docker)
 
