@@ -52,9 +52,13 @@
         return_content: true
       register: _vaultwarden_version
 
+    - name: Parse vaultwarden version
+      ansible.builtin.set_fact:
+        _vw_version: "{{ _vaultwarden_version.content | regex_replace('^\"|\"$', '') }}"
+
     - name: Assert vaultwarden reports a version
       ansible.builtin.assert:
         that:
-          - _vaultwarden_version.content | length > 0
-          - _vaultwarden_version.content is match('\d+\.\d+\.\d+')
-        fail_msg: "VW_VERSION not baked into binary — /api/version returned '{{ _vaultwarden_version.content }}'"
+          - _vw_version | length > 0
+          - _vw_version is match('\d+\.\d+\.\d+')
+        fail_msg: "VW_VERSION not baked into binary — /api/version returned '{{ _vw_version }}'"
