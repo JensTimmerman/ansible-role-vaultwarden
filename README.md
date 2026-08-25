@@ -31,7 +31,7 @@ Builds, installs and configures [Vaultwarden](https://github.com/dani-garcia/vau
 * jinja => v2.11
 * Systemd (optional)
 
-At least 1 GB of RAM (2GB recommended), the rustc compiler will compile bitwarden on your host which takes a lot of ram. Possible symptoms of not enought RAM are:
+At least 4 GB of RAM is recommended, the rustc compiler will compile vaultwarden on your host which takes a lot of ram. Possible symptoms of not enough RAM are:
 `Memory cgroup out of memory: Killed process 709453 (rustc) total-vm:2668356kB, anon-rss:955680kB, file-rss:0kB, shmem-rss:0kB, UID:996 pgtables:4516kB oom_score_adj:0`
 
 ## Role Variables
