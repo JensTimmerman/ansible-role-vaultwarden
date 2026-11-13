@@ -15,3 +15,11 @@
     - name: "Include vaultwarden"
       ansible.builtin.include_role:
         name: "ansible-role-vaultwarden"
+      vars:
+        vaultwarden_config:
+          DOMAIN: "https://{{ ansible_fqdn }}/"
+          SMTP_HOST: "mail.example.com"
+          SMTP_FROM: "vaultwarden@example.com"
+          SMTP_FROM_NAME: "vaultwarden"
+          SMTP_SSL: "false"
+          SMTP_EXPLICIT_TLS: "true"

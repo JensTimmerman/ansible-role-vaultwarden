@@ -75,12 +75,55 @@ At least 4 GB of RAM is recommended, the rustc compiler will compile vaultwarden
       SMTP_HOST: 'mail.example.com'
       SMTP_FROM: 'vaultwarden@example.com'
       SMTP_FROM_NAME: 'vaultwarden'
+      SMTP_SECURITY: 'starttls'
+      SMTP_PORT: '587'
       ROCKET_ADDRESS: '0.0.0.0'
   roles:
     - jenstimmerman.vaultwarden
 ```
 
+### SMTP security
+
+Vaultwarden 1.25.0 replaced `SMTP_SSL` and `SMTP_EXPLICIT_TLS` with a single
+`SMTP_SECURITY` setting. Valid values are:
+
+| `SMTP_SECURITY` | Description | Typical port |
+| --- | --- | --- |
+| `starttls` | Require STARTTLS before sending mail (default) | `587` |
+| `force_tls` | Use implicit TLS from the first byte | `465` |
+| `off` | Send mail without TLS | `25` |
+
+Set it explicitly in `vaultwarden_config`:
+
+```yaml
+    vaultwarden_config:
+      SMTP_HOST: 'mail.example.com'
+      SMTP_FROM: 'vaultwarden@example.com'
+      SMTP_FROM_NAME: 'vaultwarden'
+      SMTP_SECURITY: 'starttls'
+      SMTP_PORT: '587'
+```
+
+For backwards compatibility, this role converts the deprecated keys using
+Vaultwarden's own mapping and removes them from the generated `.env`:
+
+| Deprecated setting | Converted to |
+| --- | --- |
+| `SMTP_EXPLICIT_TLS: true` (checked first) | `SMTP_SECURITY: force_tls` |
+| otherwise, `SMTP_SSL: false` | `SMTP_SECURITY: off` |
+| otherwise (`SMTP_SSL: true`, only `SMTP_EXPLICIT_TLS: false`, ...) | `SMTP_SECURITY: starttls` |
+
+* The conversion only happens when the effective target version is 1.25.0 or newer. This is `vaultwarden_target_version` when available, otherwise `vaultwarden_version` (with `latest` treated as new). If you pin `vaultwarden_version` below 1.25.0, the deprecated keys are left untouched because that version does not understand `SMTP_SECURITY`.
+* Quote `off` in YAML (`SMTP_SECURITY: 'off'`); unquoted `off` is parsed as boolean `false`, which Vaultwarden rejects as an invalid value.
+
+If `SMTP_SECURITY` is set explicitly it wins. The deprecated keys are still
+removed whenever the conversion runs, for consistency; Vaultwarden only emits
+the `[DEPRECATED]` message when `SMTP_SECURITY` is unset.
+
 ## Changelog
+
+### v1.6.0
+* **Migrate deprecated SMTP options** ([#8](https://github.com/JensTimmerman/ansible-role-vaultwarden/issues/8)): `SMTP_SSL` and `SMTP_EXPLICIT_TLS` in `vaultwarden_config` are converted to `SMTP_SECURITY` using Vaultwarden's own mapping and boolean parsing (`true/t/yes/y/1`, `false/f/no/n/0`, case-insensitive) and removed from the generated `.env`. The conversion is skipped for target versions below 1.25.0, which do not understand `SMTP_SECURITY`; the version check falls back to `vaultwarden_version` when the resolved target version is not set. This preserves existing behaviour and stops Vaultwarden from logging `[DEPRECATED]: SMTP_SSL or SMTP_EXPLICIT_TLS is set`. An explicit `SMTP_SECURITY` still takes precedence. The README documents the valid values and the migration mapping.
 
 ### v1.5.0
 * **Set `VW_VERSION` during build** ([#40](https://github.com/JensTimmerman/ansible-role-vaultwarden/issues/40)): recent Bitwarden clients require a version string baked into the binary. The `VW_VERSION` environment variable is now passed to cargo during compilation, using the resolved target version.

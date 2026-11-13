@@ -1,0 +1,26 @@
+---
+- name: Load the role variables
+  ansible.builtin.include_vars: ../../vars/main.yml  # noqa: syntax-check[specific]
+
+- name: Render the Vaultwarden environment for this test case  # noqa: no-relative-paths
+  ansible.builtin.template:  # noqa: syntax-check[specific]
+    src: ../../templates/env.j2
+    dest: "/tmp/vaultwarden-verify-{{ item.name }}.env"
+    mode: "0600"
+  vars:
+    ansible_managed: "Ansible managed"
+
+- name: Read the rendered environment
+  ansible.builtin.slurp:  # noqa: syntax-check[specific]
+    src: "/tmp/vaultwarden-verify-{{ item.name }}.env"
+  register: _vaultwarden_test_env
+
+- name: Assert the rendered SMTP settings
+  ansible.builtin.assert:  # noqa: syntax-check[specific]
+    that:
+      - "item.present | default([]) | reject('in', _vaultwarden_test_env_content) | list | length == 0"
+      - "item.absent | default([]) | select('in', _vaultwarden_test_env_content) | list | length == 0"
+    fail_msg: "{{ item.name }} rendered:\n{{ _vaultwarden_test_env_content }}"
+    quiet: true
+  vars:
+    _vaultwarden_test_env_content: "{{ _vaultwarden_test_env.content | b64decode }}"
