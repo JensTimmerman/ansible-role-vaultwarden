@@ -1,3 +1,38 @@
 _vaultwarden_ansible_managed: |
   https://github.com/JensTimmerman/ansible-role-vaultwarden
   template: jenstimmerman.vaultwarden/templates/env.j2
+
+# SMTP_SSL and SMTP_EXPLICIT_TLS were replaced by SMTP_SECURITY in Vaultwarden 1.25.0.
+# Convert them with the same rules as Vaultwarden's smtp_convert_deprecated_ssl_options().
+_vaultwarden_effective_version: >-
+  {{ (vaultwarden_target_version | default(vaultwarden_version | default('latest'))) | string }}
+_vaultwarden_smtp_security_supported: >-
+  {{ _vaultwarden_effective_version == 'latest'
+     or (_vaultwarden_effective_version is match('^v?[0-9]+(\.[0-9]+)*$')
+         and ((_vaultwarden_effective_version | regex_replace('^v', '')) is version('1.25.0', '>='))) }}
+_vaultwarden_legacy_smtp_keys: >-
+  {{ ('SMTP_SSL' in vaultwarden_config) or ('SMTP_EXPLICIT_TLS' in vaultwarden_config) }}
+# Vaultwarden's get_env_bool(): true/t/yes/y/1 and false/f/no/n/0, case-insensitive.
+# Anything else is treated as unset. Values are not trimmed, matching upstream.
+_vaultwarden_smtp_ssl: >-
+  {{ vaultwarden_config['SMTP_SSL'] | default('') | string | lower }}
+_vaultwarden_smtp_explicit_tls: >-
+  {{ vaultwarden_config['SMTP_EXPLICIT_TLS'] | default('') | string | lower }}
+_vaultwarden_smtp_security: >-
+  {{ vaultwarden_config['SMTP_SECURITY']
+     if 'SMTP_SECURITY' in vaultwarden_config
+     else ('force_tls'
+           if _vaultwarden_smtp_explicit_tls in ['true', 't', 'yes', 'y', '1']
+           else ('off'
+                 if _vaultwarden_smtp_ssl in ['false', 'f', 'no', 'n', '0']
+                 else 'starttls')) }}
+_vaultwarden_config: >-
+  {{
+    (vaultwarden_config | dict2items
+      | rejectattr('key', 'equalto', 'SMTP_SSL')
+      | rejectattr('key', 'equalto', 'SMTP_EXPLICIT_TLS')
+      | items2dict
+      | combine({'SMTP_SECURITY': _vaultwarden_smtp_security}))
+    if (_vaultwarden_legacy_smtp_keys | bool) and (_vaultwarden_smtp_security_supported | bool)
+    else vaultwarden_config
+  }}

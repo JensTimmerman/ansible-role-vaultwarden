@@ -62,3 +62,180 @@
           - _vw_version | length > 0
           - _vw_version is match('\d+\.\d+\.\d+')
         fail_msg: "VW_VERSION not baked into binary — /api/version returned '{{ _vw_version }}'"
+
+    - name: Read generated .env
+      ansible.builtin.slurp:
+        src: /opt/vaultwarden/.env
+      register: _vaultwarden_env
+      become: true
+
+    - name: Assert deprecated SMTP keys were migrated in .env
+      ansible.builtin.assert:
+        that:
+          - "'SMTP_SECURITY=\"force_tls\"' in (_vaultwarden_env.content | b64decode)"
+          - "'SMTP_SSL=' not in (_vaultwarden_env.content | b64decode)"
+          - "'SMTP_EXPLICIT_TLS=' not in (_vaultwarden_env.content | b64decode)"
+
+    - name: Verify deprecated SMTP mapping with resolved target versions
+      ansible.builtin.include_tasks: verify_smtp_case.yml
+      vars:
+        vaultwarden_config: "{{ item.config }}"
+        vaultwarden_target_version: "{{ item.target_version }}"
+        vaultwarden_version: "latest"
+      loop:
+        - name: ssl_true
+          config: {DOMAIN: "x", SMTP_SSL: "true"}
+          target_version: "1.37.5"
+          present: ['SMTP_SECURITY="starttls"', 'DOMAIN="x"']
+          absent: ['SMTP_SSL=', 'SMTP_EXPLICIT_TLS=']
+        - name: ssl_false
+          config: {DOMAIN: "x", SMTP_SSL: "false"}
+          target_version: "1.37.5"
+          present: ['SMTP_SECURITY="off"', 'DOMAIN="x"']
+          absent: ['SMTP_SSL=', 'SMTP_EXPLICIT_TLS=']
+        - name: ssl_t
+          config: {DOMAIN: "x", SMTP_SSL: "t"}
+          target_version: "1.37.5"
+          present: ['SMTP_SECURITY="starttls"']
+          absent: ['SMTP_SSL=']
+        - name: ssl_f
+          config: {DOMAIN: "x", SMTP_SSL: "f"}
+          target_version: "1.37.5"
+          present: ['SMTP_SECURITY="off"']
+          absent: ['SMTP_SSL=']
+        - name: ssl_yes
+          config: {DOMAIN: "x", SMTP_SSL: "yes"}
+          target_version: "1.37.5"
+          present: ['SMTP_SECURITY="starttls"']
+          absent: ['SMTP_SSL=']
+        - name: ssl_no
+          config: {DOMAIN: "x", SMTP_SSL: "no"}
+          target_version: "1.37.5"
+          present: ['SMTP_SECURITY="off"']
+          absent: ['SMTP_SSL=']
+        - name: ssl_one
+          config: {DOMAIN: "x", SMTP_SSL: 1}
+          target_version: "1.37.5"
+          present: ['SMTP_SECURITY="starttls"']
+          absent: ['SMTP_SSL=']
+        - name: ssl_zero
+          config: {DOMAIN: "x", SMTP_SSL: 0}
+          target_version: "1.37.5"
+          present: ['SMTP_SECURITY="off"']
+          absent: ['SMTP_SSL=']
+        - name: ssl_upper_false
+          config: {DOMAIN: "x", SMTP_SSL: "FALSE"}
+          target_version: "1.37.5"
+          present: ['SMTP_SECURITY="off"']
+          absent: ['SMTP_SSL=']
+        - name: ssl_whitespace
+          config: {DOMAIN: "x", SMTP_SSL: " false "}
+          target_version: "1.37.5"
+          present: ['SMTP_SECURITY="starttls"']
+          absent: ['SMTP_SSL=']
+        - name: explicit_tls_whitespace
+          config: {DOMAIN: "x", SMTP_EXPLICIT_TLS: " true "}
+          target_version: "1.37.5"
+          present: ['SMTP_SECURITY="starttls"']
+          absent: ['SMTP_EXPLICIT_TLS=']
+        - name: ssl_invalid
+          config: {DOMAIN: "x", SMTP_SSL: "junk"}
+          target_version: "1.37.5"
+          present: ['SMTP_SECURITY="starttls"']
+          absent: ['SMTP_SSL=']
+        - name: ssl_null
+          config: {DOMAIN: "x", SMTP_SSL: null}
+          target_version: "1.37.5"
+          present: ['SMTP_SECURITY="starttls"']
+          absent: ['SMTP_SSL=']
+        - name: explicit_tls_true
+          config: {DOMAIN: "x", SMTP_EXPLICIT_TLS: true}
+          target_version: "1.37.5"
+          present: ['SMTP_SECURITY="force_tls"']
+          absent: ['SMTP_SSL=', 'SMTP_EXPLICIT_TLS=']
+        - name: explicit_tls_y
+          config: {DOMAIN: "x", SMTP_EXPLICIT_TLS: "Y"}
+          target_version: "1.37.5"
+          present: ['SMTP_SECURITY="force_tls"']
+          absent: ['SMTP_EXPLICIT_TLS=']
+        - name: explicit_tls_false
+          config: {DOMAIN: "x", SMTP_EXPLICIT_TLS: "false"}
+          target_version: "1.37.5"
+          present: ['SMTP_SECURITY="starttls"']
+          absent: ['SMTP_EXPLICIT_TLS=']
+        - name: explicit_tls_on_invalid
+          config: {DOMAIN: "x", SMTP_EXPLICIT_TLS: "on"}
+          target_version: "1.37.5"
+          present: ['SMTP_SECURITY="starttls"']
+          absent: ['SMTP_EXPLICIT_TLS=']
+        - name: both_false
+          config: {DOMAIN: "x", SMTP_SSL: false, SMTP_EXPLICIT_TLS: false}
+          target_version: "1.37.5"
+          present: ['SMTP_SECURITY="off"']
+          absent: ['SMTP_SSL=', 'SMTP_EXPLICIT_TLS=']
+        - name: explicit_tls_wins
+          config: {DOMAIN: "x", SMTP_SSL: "false", SMTP_EXPLICIT_TLS: "true"}
+          target_version: "1.37.5"
+          present: ['SMTP_SECURITY="force_tls"']
+          absent: ['SMTP_SSL=', 'SMTP_EXPLICIT_TLS=']
+        - name: security_wins
+          config: {DOMAIN: "x", SMTP_SSL: "true", SMTP_SECURITY: "off"}
+          target_version: "1.37.5"
+          present: ['SMTP_SECURITY="off"']
+          absent: ['SMTP_SSL=', 'SMTP_EXPLICIT_TLS=']
+        - name: security_only
+          config: {DOMAIN: "x", SMTP_SECURITY: "force_tls"}
+          target_version: "1.37.5"
+          present: ['SMTP_SECURITY="force_tls"']
+          absent: ['SMTP_SSL=', 'SMTP_EXPLICIT_TLS=']
+        - name: no_legacy_keys
+          config: {DOMAIN: "x", SMTP_HOST: "mail.example.com"}
+          target_version: "1.37.5"
+          present: ['SMTP_HOST="mail.example.com"']
+          absent: ['SMTP_SECURITY=', 'SMTP_SSL=', 'SMTP_EXPLICIT_TLS=']
+        - name: empty_config
+          config: {}
+          target_version: "1.37.5"
+          absent: ['SMTP_SECURITY=', 'SMTP_SSL=', 'SMTP_EXPLICIT_TLS=']
+        - name: boundary_125
+          config: {DOMAIN: "x", SMTP_SSL: "false"}
+          target_version: "1.25.0"
+          present: ['SMTP_SECURITY="off"']
+          absent: ['SMTP_SSL=']
+        - name: v_prefixed_125
+          config: {DOMAIN: "x", SMTP_SSL: "false"}
+          target_version: "v1.25.0"
+          present: ['SMTP_SECURITY="off"']
+          absent: ['SMTP_SSL=']
+        - name: old_vaultwarden_keeps_keys
+          config: {DOMAIN: "x", SMTP_SSL: "false"}
+          target_version: "1.24.0"
+          present: ['SMTP_SSL="false"']
+          absent: ['SMTP_SECURITY=', 'SMTP_EXPLICIT_TLS=']
+
+    - name: Verify SMTP migration falls back to vaultwarden_version
+      ansible.builtin.include_tasks: verify_smtp_case.yml
+      vars:
+        vaultwarden_config: "{{ item.config }}"
+        vaultwarden_version: "{{ item.vaultwarden_version }}"
+      loop:
+        - name: configure_only_old_version
+          config: {DOMAIN: "x", SMTP_SSL: "false"}
+          vaultwarden_version: "1.24.0"
+          present: ['SMTP_SSL="false"']
+          absent: ['SMTP_SECURITY=']
+        - name: configure_only_latest
+          config: {DOMAIN: "x", SMTP_SSL: "false"}
+          vaultwarden_version: "latest"
+          present: ['SMTP_SECURITY="off"']
+          absent: ['SMTP_SSL=']
+        - name: configure_only_branch_ref
+          config: {DOMAIN: "x", SMTP_SSL: "false"}
+          vaultwarden_version: "main"
+          present: ['SMTP_SSL="false"']
+          absent: ['SMTP_SECURITY=']
+        - name: configure_only_empty_version
+          config: {DOMAIN: "x", SMTP_SSL: "false"}
+          vaultwarden_version: ""
+          present: ['SMTP_SSL="false"']
+          absent: ['SMTP_SECURITY=']
